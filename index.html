@@ -1,61 +1,76 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
+import { useEffect, useRef, useState } from "react";
 
-export default function BunnyClicker() {
-  const [carrots, setCarrots] = useState(0);
-  const [power, setPower] = useState(1);
-  const [auto, setAuto] = useState(0);
+export default function SimplePlatformer() {
+  const canvasRef = useRef(null);
+  const [player, setPlayer] = useState({ x: 50, y: 200, vx: 0, vy: 0 });
+  const gravity = 0.5;
+  const ground = 250;
 
-  const handleClick = () => {
-    setCarrots(carrots + power);
-  };
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
 
-  const buyPower = () => {
-    if (carrots >= 10) {
-      setCarrots(carrots - 10);
-      setPower(power + 1);
-    }
-  };
+    let keys = {};
 
-  const buyAuto = () => {
-    if (carrots >= 50) {
-      setCarrots(carrots - 50);
-      setAuto(auto + 1);
-    }
-  };
+    const handleKeyDown = (e) => (keys[e.key] = true);
+    const handleKeyUp = (e) => (keys[e.key] = false);
 
-  // 自動増加
-  setTimeout(() => {
-    if (auto > 0) {
-      setCarrots(c => c + auto);
-    }
-  }, 1000);
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    const loop = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      let { x, y, vx, vy } = player;
+
+      // 操作
+      if (keys["ArrowRight"]) vx = 3;
+      else if (keys["ArrowLeft"]) vx = -3;
+      else vx = 0;
+
+      if (keys[" "] && y >= ground) {
+        vy = -10;
+      }
+
+      // 重力
+      vy += gravity;
+      y += vy;
+      x += vx;
+
+      // 地面判定
+      if (y > ground) {
+        y = ground;
+        vy = 0;
+      }
+
+      // 描画
+      ctx.fillStyle = "skyblue";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "green";
+      ctx.fillRect(0, ground + 20, canvas.width, 50);
+
+      ctx.fillStyle = "red";
+      ctx.fillRect(x, y, 30, 30);
+
+      setPlayer({ x, y, vx, vy });
+
+      requestAnimationFrame(loop);
+    };
+
+    loop();
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, [player]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-pink-200 to-purple-300 p-6">
-      <h1 className="text-4xl font-bold mb-4">🐰 うさぎクリッカー</h1>
-
-      <motion.div
-        whileTap={{ scale: 0.9 }}
-        onClick={handleClick}
-        className="text-6xl cursor-pointer mb-6"
-      >
-        🥕
-      </motion.div>
-
-      <p className="text-xl mb-4">にんじん: {carrots}</p>
-
-      <div className="flex gap-4">
-        <Button onClick={buyPower}>クリック強化 (10)</Button>
-        <Button onClick={buyAuto}>自動収穫 (50)</Button>
-      </div>
-
-      <div className="mt-6 text-sm opacity-70">
-        <p>クリック力: {power}</p>
-        <p>自動収穫: {auto}/秒</p>
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
+      <h1 className="text-2xl mb-4">横スクロールゲーム（試作）</h1>
+      <canvas ref={canvasRef} width={500} height={300} className="border" />
+      <p className="mt-2 text-sm">← → で移動 / スペースでジャンプ</p>
     </div>
   );
 }
-
