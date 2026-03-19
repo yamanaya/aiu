@@ -1,1 +1,61 @@
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+
+export default function BunnyClicker() {
+  const [carrots, setCarrots] = useState(0);
+  const [power, setPower] = useState(1);
+  const [auto, setAuto] = useState(0);
+
+  const handleClick = () => {
+    setCarrots(carrots + power);
+  };
+
+  const buyPower = () => {
+    if (carrots >= 10) {
+      setCarrots(carrots - 10);
+      setPower(power + 1);
+    }
+  };
+
+  const buyAuto = () => {
+    if (carrots >= 50) {
+      setCarrots(carrots - 50);
+      setAuto(auto + 1);
+    }
+  };
+
+  // 自動増加
+  setTimeout(() => {
+    if (auto > 0) {
+      setCarrots(c => c + auto);
+    }
+  }, 1000);
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-pink-200 to-purple-300 p-6">
+      <h1 className="text-4xl font-bold mb-4">🐰 うさぎクリッカー</h1>
+
+      <motion.div
+        whileTap={{ scale: 0.9 }}
+        onClick={handleClick}
+        className="text-6xl cursor-pointer mb-6"
+      >
+        🥕
+      </motion.div>
+
+      <p className="text-xl mb-4">にんじん: {carrots}</p>
+
+      <div className="flex gap-4">
+        <Button onClick={buyPower}>クリック強化 (10)</Button>
+        <Button onClick={buyAuto}>自動収穫 (50)</Button>
+      </div>
+
+      <div className="mt-6 text-sm opacity-70">
+        <p>クリック力: {power}</p>
+        <p>自動収穫: {auto}/秒</p>
+      </div>
+    </div>
+  );
+}
 
